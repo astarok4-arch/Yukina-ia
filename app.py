@@ -749,7 +749,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=custom_css) as demo:
         with gr.Group(elem_classes="chat-header"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    gr.HTML('<h2 class="chat-header-title" id="model-title">Yukina AI</h2>')
+                    chat_title = gr.HTML('<h2 class="chat-header-title">Yukina AI</h2>')
                 with gr.Column(scale=0, min_width=100):
                     with gr.Row(scale=1):
                         btn_history_toggle = gr.Button("📋 History", elem_classes="chat-header-btn")
@@ -764,8 +764,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=custom_css) as demo:
                 label="",
                 show_label=False,
                 scale=1,
-                height=400,
-                bubble_full_width=False
+                height=400
             )
         
         # History panel (collapsible)
@@ -791,6 +790,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=custom_css) as demo:
                         label="",
                         placeholder="Type your message...",
                         lines=1,
+                        max_lines=7,
                         show_label=False,
                         elem_classes="input-field-wrapper"
                     )
@@ -818,11 +818,14 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=custom_css) as demo:
         }
         model_id, title = model_map.get(model_type, ("Histórias (Euryale)", "🎭 RPG"))
         
+        # Retorna o HTML formatado para o título
+        formatted_title = f'<h2 class="chat-header-title">{title}</h2>'
+        
         return [
             gr.update(visible=False),  # portal_screen
             gr.update(visible=True),   # chat_screen
-            model_id,                   # model_selector
-            title                       # title update (via JS)
+            model_id,                  # model_selector
+            formatted_title            # chat_title (HTML)
         ]
     
     def show_portal():
@@ -844,44 +847,83 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=custom_css) as demo:
         for response_text, response_img in process_yukina(model, msg, img):
             yield response_text, response_img
     
-    # Navigation button clicks
-    btn_rpg.click(show_chat, inputs=gr.State("rpg"), outputs=[portal_screen, chat_screen, model_selector, gr.HTML()]).then(
-        lambda: ("", None), outputs=[msg_input, img_input]
+    # ========== BUTTON EVENTS (Crash-proof) ==========
+    # RPG Button
+    btn_rpg.click(
+        lambda: show_chat("rpg"),
+        outputs=[portal_screen, chat_screen, model_selector, chat_title]
+    ).then(
+        lambda: ("", None),
+        outputs=[msg_input, img_input]
     )
     
-    btn_teaching.click(show_chat, inputs=gr.State("teaching"), outputs=[portal_screen, chat_screen, model_selector, gr.HTML()]).then(
-        lambda: ("", None), outputs=[msg_input, img_input]
+    # Teaching Button
+    btn_teaching.click(
+        lambda: show_chat("teaching"),
+        outputs=[portal_screen, chat_screen, model_selector, chat_title]
+    ).then(
+        lambda: ("", None),
+        outputs=[msg_input, img_input]
     )
     
-    btn_vision.click(show_chat, inputs=gr.State("vision"), outputs=[portal_screen, chat_screen, model_selector, gr.HTML()]).then(
-        lambda: ("", None), outputs=[msg_input, img_input]
+    # Vision Button
+    btn_vision.click(
+        lambda: show_chat("vision"),
+        outputs=[portal_screen, chat_screen, model_selector, chat_title]
+    ).then(
+        lambda: ("", None),
+        outputs=[msg_input, img_input]
     )
     
-    btn_docs.click(show_chat, inputs=gr.State("docs"), outputs=[portal_screen, chat_screen, model_selector, gr.HTML()]).then(
-        lambda: ("", None), outputs=[msg_input, img_input]
+    # Documents Button
+    btn_docs.click(
+        lambda: show_chat("docs"),
+        outputs=[portal_screen, chat_screen, model_selector, chat_title]
+    ).then(
+        lambda: ("", None),
+        outputs=[msg_input, img_input]
     )
     
-    btn_yukina.click(show_chat, inputs=gr.State("yukina"), outputs=[portal_screen, chat_screen, model_selector, gr.HTML()]).then(
-        lambda: ("", None), outputs=[msg_input, img_input]
+    # Yukina Direct Button
+    btn_yukina.click(
+        lambda: show_chat("yukina"),
+        outputs=[portal_screen, chat_screen, model_selector, chat_title]
+    ).then(
+        lambda: ("", None),
+        outputs=[msg_input, img_input]
     )
     
-    btn_back.click(show_portal, outputs=[portal_screen, chat_screen])
+    # Back Button
+    btn_back.click(
+        show_portal,
+        outputs=[portal_screen, chat_screen]
+    )
     
-    btn_history_toggle.click(toggle_history, outputs=[history_display])
+    # History Toggle Button
+    btn_history_toggle.click(
+        toggle_history,
+        outputs=[history_display]
+    )
     
-    # Send message
+    # Send Message Button
     btn_send.click(
         update_chat,
         inputs=[msg_input, img_input, model_selector],
         outputs=[out_txt, out_img]
-    ).then(lambda: ("", None), outputs=[msg_input, img_input])
+    ).then(
+        lambda: ("", None),
+        outputs=[msg_input, img_input]
+    )
     
-    # Allow Enter key to send (works for textarea too)
+    # Enter key to send
     msg_input.submit(
         update_chat,
         inputs=[msg_input, img_input, model_selector],
         outputs=[out_txt, out_img]
-    ).then(lambda: ("", None), outputs=[msg_input, img_input])
+    ).then(
+        lambda: ("", None),
+        outputs=[msg_input, img_input]
+    )
 
 if __name__ == "__main__":
     demo.launch(share=False)
